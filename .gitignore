@@ -8,3 +8,6 @@ __pycache__/
 dist/
 build/
 .DS_Store
+
+# personal PDFs
+Profile.pdf
