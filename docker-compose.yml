@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  backend:
+    build: ./backend
+    container_name: docquery-backend
+    ports:
+      - "8000:8000"
+    environment:
+      AWS_REGION: ${AWS_REGION}
+      S3_BUCKET: ${S3_BUCKET}
+      DDB_TABLE: ${DDB_TABLE}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+    command: >
+      sh -c "
+      python - <<'PY'
+      import os, json, boto3
+      # pull GEMINI_API_KEY from SSM Parameter Store at container start
+      name=os.getenv('SSM_PARAM_GEMINI','/docquery/GEMINI_API_KEY')
+      try:
+        ssm=boto3.client('ssm', region_name=os.getenv('AWS_REGION','us-west-2'))
+        v=ssm.get_parameter(Name=name, WithDecryption=True)['Parameter']['Value']
+        open('/app/.geminikey','w').write(v)
+        os.environ['GEMINI_API_KEY']=v
+      except Exception as e:
+        print('WARN: could not fetch SSM key:', e)
+      PY
+      && uvicorn backend.app:app --host 0.0.0.0 --port 8000
+      "
+    depends_on: []
+  frontend:
+    build: ./frontend
+    container_name: docquery-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      BACKEND_URL: http://localhost:8000
+    depends_on:
+      - backend
