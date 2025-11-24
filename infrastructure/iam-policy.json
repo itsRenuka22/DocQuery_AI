@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3MinimalAccess",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:GetObject", "s3:ListBucket"],
+      "Resource": [
+        "arn:aws:s3:::askmypdf-renuka ",
+        "arn:aws:s3:::askmypdf-renuka /*"
+      ]
+    },
+    {
+      "Sid": "DDBMinimalAccess",
+      "Effect": "Allow",
+      "Action": ["dynamodb:PutItem", "dynamodb:Query", "dynamodb:DescribeTable"],
+      "Resource": "arn:aws:dynamodb:us-west-2:*:table/askmypdf-chat"
+    }
+  ]
+}
