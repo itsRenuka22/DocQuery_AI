@@ -1,15 +1,44 @@
+# Python
 .venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+
+# Environment variables
 .env
 .env.*
 !.env.example
+
+# IDEs
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
+
+# Build artifacts
 dist/
 build/
-.DS_Store
+*.egg-info/
 
-# personal PDFs
+# OS
+.DS_Store
+Thumbs.db
+
+# Personal files (add your own)
 Profile.pdf
-EC2_DEPLOYMENT.md
+*.private.pdf
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+htmlcov/
+.coverage
+.pytest_cache/
