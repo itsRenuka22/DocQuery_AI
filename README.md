@@ -1,6 +1,6 @@
 # 📄 AskMyPDF - AI-Powered PDF Chatbot
 
-> An intelligent document Q&A system built with FastAPI, Streamlit, and Google Gemini AI, deployed on AWS cloud infrastructure
+> An intelligent document Q&A system built with FastAPI, React, Next.js, and Google Gemini AI, deployed on AWS cloud infrastructure
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.121.1-green.svg)](https://fastapi.tiangolo.com/)
@@ -15,7 +15,7 @@
 - **Secure IAM Authentication**: Role-based access control with minimal permissions
 - **Containerized Deployment**: Docker and Docker Compose for consistent environments
 - **RESTful API**: FastAPI backend with automatic OpenAPI documentation
-- **Modern UI**: Streamlit-based interactive web interface
+- **Modern UI**: React-based interactive web interface with Next.js and Tailwind CSS, featuring dark mode
 - **Session Management**: Track conversation history across multiple PDFs
 - **Scalable Design**: Ready for production deployment on AWS EC2
 
@@ -28,14 +28,14 @@
                        │
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              AWS Security Group (Ports: 22, 8000, 8501)     │
+│              AWS Security Group (Ports: 22, 3000, 8000)     │
 └──────────────────────┬──────────────────────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    EC2 Instance (Docker Host)                │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │  Frontend Container (Streamlit) - Port 8501          │  │
+│  │  Frontend Container (Next.js) - Port 3000            │  │
 │  │  └──────────────┬───────────────────────────────────┘  │
 │  │                 │ HTTP                                   │
 │  │                 ▼                                         │
@@ -66,8 +66,12 @@
 - **AI Integration**: Google Gemini 2.0 Flash API
 
 ### Frontend
-- **Framework**: Streamlit 1.50.0
-- **HTTP Client**: Requests 2.32.5
+- **Framework**: Next.js 15 (React 19) with TypeScript
+- **Styling**: Tailwind CSS 3.4
+- **UI Components**: Custom React components with dark mode support
+- **State Management**: React Context + Custom Hooks
+- **File Upload**: react-dropzone
+- **Animations**: Framer Motion
 
 ### Infrastructure
 - **Container Runtime**: Docker & Docker Compose

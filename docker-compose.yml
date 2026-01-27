@@ -19,10 +19,9 @@ services:
     container_name: docquery-frontend
     restart: unless-stopped
     ports:
-      - "8501:8501"
-    env_file:
-      - .env
+      - "3000:3000"
     environment:
-      BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
+      NEXT_PUBLIC_BACKEND_URL: ${BACKEND_URL:-http://backend:8000}
+      NODE_ENV: production
     depends_on:
       - backend
