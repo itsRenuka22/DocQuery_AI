@@ -21,7 +21,8 @@ export interface UploadState {
 
 export interface UseFileUploadReturn {
   files: FileInfo[];
-  uploadFiles: (files: File[]) => Promise<void>;
+  addFiles: (files: File[]) => void;
+  uploadFiles: (fileIds: string[], sessionId: string) => Promise<void>;
   removeFile: (fileId: string) => void;
   clearFiles: () => void;
   isUploading: boolean;

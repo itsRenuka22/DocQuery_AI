@@ -6,6 +6,7 @@ import {
   IngestResponse,
   AskResponse,
   ChatRequest,
+  HistoryResponse,
 } from '@/types/api';
 
 /**
@@ -40,6 +41,14 @@ export async function ingestPDFs(
  */
 export async function askQuestion(request: ChatRequest): Promise<AskResponse> {
   return apiClient.post<AskResponse>('/ask', request);
+}
+
+/**
+ * Get conversation history endpoint
+ * Retrieves the full conversation history for a given session
+ */
+export async function getHistory(sessionId: string): Promise<HistoryResponse> {
+  return apiClient.get<HistoryResponse>(`/history/${sessionId}`);
 }
 
 /**

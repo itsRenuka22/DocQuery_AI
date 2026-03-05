@@ -17,9 +17,19 @@ export interface AskResponse {
   contextChars: number;
 }
 
+export interface HistoryMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface ChatRequest {
   session_id: string;
   question: string;
+  history: HistoryMessage[];
+}
+
+export interface HistoryResponse {
+  history: HistoryMessage[];
 }
 
 export interface IngestRequest {

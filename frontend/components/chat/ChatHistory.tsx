@@ -23,10 +23,10 @@ export function ChatHistory({ messages, isLoading = false }: ChatHistoryProps) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
         <div className="text-5xl mb-4">💬</div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+        <h2 className="text-xl font-semibold text-white mb-2">
           Start a conversation
         </h2>
-        <p className="text-gray-500 dark:text-gray-400 max-w-sm">
+        <p className="text-gray-400 max-w-sm">
           Upload some PDFs and ask questions to get started. I'll help you find the information you need.
         </p>
       </div>
@@ -46,9 +46,9 @@ export function ChatHistory({ messages, isLoading = false }: ChatHistoryProps) {
               🤖
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-2 px-4 py-3 bg-gray-100 dark:bg-slate-800 rounded-lg">
+              <div className="flex items-center gap-2 px-4 py-3 bg-slate-800 rounded-lg">
                 <Spinner size="sm" />
-                <p className="text-sm text-gray-600 dark:text-gray-300">Thinking...</p>
+                <p className="text-sm text-gray-300">Thinking...</p>
               </div>
             </div>
           </div>

@@ -34,7 +34,7 @@ export function Sidebar({ sessionId, isOpen = true, onClose, onNewSession }: Sid
       {/* Sidebar */}
       <aside
         className={clsx(
-          'fixed left-0 top-16 bottom-0 w-72 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 overflow-y-auto transition-transform duration-200 z-40 lg:sticky lg:top-0 lg:translate-x-0',
+          'fixed left-0 top-16 bottom-0 w-72 bg-slate-900 border-r border-slate-700 overflow-y-auto transition-transform duration-200 z-40 lg:sticky lg:top-0 lg:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -42,16 +42,16 @@ export function Sidebar({ sessionId, isOpen = true, onClose, onNewSession }: Sid
           {/* Session Section */}
           <div className="space-y-4">
             <div>
-              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-sm font-semibold text-white mb-2">
                 Session ID
               </h2>
               <div className="flex items-start gap-2">
-                <code className="flex-1 text-xs bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 p-2 rounded font-mono break-all">
+                <code className="flex-1 text-xs bg-slate-800 text-gray-300 p-2 rounded font-mono break-all">
                   {sessionId}
                 </code>
                 <button
                   onClick={handleCopySessionId}
-                  className="flex-shrink-0 p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors"
+                  className="flex-shrink-0 p-2 hover:bg-slate-800 rounded transition-colors"
                   title="Copy session ID"
                 >
                   {copied ? (
@@ -76,13 +76,13 @@ export function Sidebar({ sessionId, isOpen = true, onClose, onNewSession }: Sid
               Persistent Session
             </Badge>
 
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-gray-400">
               Your session ID persists across refreshes. Share it to continue a conversation elsewhere.
             </p>
           </div>
 
           {/* Divider */}
-          <div className="my-6 h-px bg-gray-200 dark:bg-slate-700" />
+          <div className="my-6 h-px bg-slate-700" />
 
           {/* Actions */}
           <div className="space-y-3">
@@ -99,11 +99,11 @@ export function Sidebar({ sessionId, isOpen = true, onClose, onNewSession }: Sid
           </div>
 
           {/* Info */}
-          <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <h3 className="text-xs font-semibold text-blue-900 dark:text-blue-200 mb-2">
+          <div className="mt-8 p-4 bg-blue-900/20 rounded-lg">
+            <h3 className="text-xs font-semibold text-blue-200 mb-2">
               💡 Tip
             </h3>
-            <p className="text-xs text-blue-700 dark:text-blue-300">
+            <p className="text-xs text-blue-300">
               Upload multiple PDFs and ask questions about any of them. Your chat history is saved per session.
             </p>
           </div>

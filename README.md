@@ -1,4 +1,4 @@
-# 📄 AskMyPDF - AI-Powered PDF Chatbot
+# 📄 DocQuery AI - AI-Powered PDF Chatbot
 
 > An intelligent document Q&A system built with FastAPI, React, Next.js, and Google Gemini AI, deployed on AWS cloud infrastructure
 

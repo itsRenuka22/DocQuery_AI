@@ -11,19 +11,19 @@ import { useSession } from '@/context/SessionProvider';
 import { useChat } from '@/lib/hooks/useChat';
 import { useFileUpload } from '@/lib/hooks/useFileUpload';
 import { useToast } from '@/lib/hooks/useToast';
-import { initializeApp } from '@/lib/api/endpoints';
+import { initializeApp, getHistory } from '@/lib/api/endpoints';
 import clsx from 'clsx';
 
 export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showUpload, setShowUpload] = useState(true);
   const [uploadView, setUploadView] = useState<'zone' | 'history'>('zone');
   const [initialized, setInitialized] = useState(false);
   const [connectionError, setConnectionError] = useState<string>();
+  const [messageInput, setMessageInput] = useState('');
 
   const { sessionId, resetSession } = useSession();
-  const { messages, isLoading, error: chatError, sendMessage, clearMessages, setError } = useChat();
-  const { files, uploadFiles, removeFile, clearFiles, isUploading, uploadProgress } = useFileUpload();
+  const { messages, isLoading, error: chatError, sendMessage, clearMessages, setError, initMessages } = useChat();
+  const { files, addFiles, uploadFiles, removeFile, clearFiles, isUploading, uploadProgress } = useFileUpload();
   const { toasts, showToast, removeToast } = useToast();
 
   // Initialize app and check backend connection
@@ -40,21 +40,35 @@ export default function Home() {
     checkConnection();
   }, []);
 
+  // Fetch and restore conversation history on session load
+  useEffect(() => {
+    if (!sessionId) return;
+    const restoreHistory = async () => {
+      try {
+        const result = await getHistory(sessionId);
+        if (result.history.length > 0) {
+          initMessages(result.history);
+        }
+      } catch (err) {
+        // Silently ignore — could be a fresh session or DynamoDB not configured
+        console.debug('No history found for session:', sessionId);
+      }
+    };
+    restoreHistory();
+  }, [sessionId]);
+
   // Handle file upload
   const handleUpload = async () => {
-    if (files.length === 0) {
+    const pendingFiles = files.filter(f => f.status === 'pending');
+    if (pendingFiles.length === 0) {
       showToast('Please select files first', 'warning');
       return;
     }
 
     try {
-      const filesToUpload = files
-        .filter(f => f.status === 'pending')
-        .map(f => new File([f.name], f.name)); // Note: This is a workaround, ideally store File objects
-
-      await uploadFiles(filesToUpload, sessionId);
-      showToast(`${files.length} file(s) uploaded successfully`, 'success');
-      setShowUpload(false);
+      const fileIds = pendingFiles.map(f => f.id);
+      await uploadFiles(fileIds, sessionId);
+      showToast(`${pendingFiles.length} file(s) uploaded successfully`, 'success');
       setUploadView('history');
     } catch (err) {
       showToast('Upload failed', 'error');
@@ -64,16 +78,16 @@ export default function Home() {
   // Handle send message
   const handleSendMessage = async (message: string) => {
     if (!message.trim()) {
-      setError('Please enter a message');
+      showToast('Please enter a message', 'warning');
       return;
     }
 
     if (files.length === 0 || files.every(f => f.status !== 'success')) {
-      setError('Please upload at least one PDF first');
-      showToast('Please upload a PDF first', 'info');
+      showToast('Please upload at least one PDF first', 'warning');
       return;
     }
 
+    setMessageInput('');
     await sendMessage(sessionId, message);
   };
 
@@ -82,14 +96,13 @@ export default function Home() {
     resetSession();
     clearMessages();
     clearFiles();
-    setShowUpload(true);
     setUploadView('zone');
     setSidebarOpen(false);
     showToast('New session created', 'info');
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-white dark:bg-slate-950">
+    <div className="h-screen flex flex-col overflow-hidden bg-slate-950">
       {/* Header */}
       <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
@@ -107,8 +120,8 @@ export default function Home() {
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Connection Error Banner */}
           {connectionError && (
-            <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-3">
-              <p className="text-sm text-red-800 dark:text-red-200">
+            <div className="bg-red-900/20 border-b border-red-800 px-4 py-3">
+              <p className="text-sm text-red-200">
                 ⚠️ {connectionError}
               </p>
             </div>
@@ -116,8 +129,8 @@ export default function Home() {
 
           {/* Chat Error */}
           {chatError && (
-            <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-3">
-              <p className="text-sm text-red-800 dark:text-red-200">
+            <div className="bg-red-900/20 border-b border-red-800 px-4 py-3">
+              <p className="text-sm text-red-200">
                 ❌ {chatError}
               </p>
             </div>
@@ -125,74 +138,59 @@ export default function Home() {
 
           <div className="flex-1 flex flex-col lg:flex-row overflow-hidden gap-4 p-4">
             {/* Chat Section */}
-            <div className={clsx('flex flex-col flex-1 overflow-hidden', !showUpload && 'w-full')}>
+            <div className="flex flex-col flex-1 overflow-hidden">
               <ChatHistory messages={messages} isLoading={isLoading} />
               <ChatInput
-                value={chatError || ''}
-                onChange={(val) => setError(val || undefined)}
-                onSubmit={() => handleSendMessage(chatError || '')}
+                value={messageInput}
+                onChange={(val) => setMessageInput(val || '')}
+                onSubmit={() => handleSendMessage(messageInput)}
                 isLoading={isLoading}
                 disabled={files.length === 0 || connectionError !== undefined}
               />
             </div>
 
-            {/* Upload Section */}
-            {showUpload && (
-              <div className={clsx(
-                'bg-gray-50 dark:bg-slate-800 rounded-lg p-6 border border-gray-200 dark:border-slate-700',
-                'lg:w-96 overflow-y-auto'
-              )}>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  {uploadView === 'zone' ? '📤 Upload PDFs' : '📚 Uploaded Files'}
-                </h2>
+            {/* Files Panel - Always Visible */}
+            <div className={clsx(
+              'bg-slate-800 rounded-lg p-6 border border-slate-700',
+              'lg:w-96 overflow-y-auto flex flex-col'
+            )}>
+              <h2 className="text-lg font-semibold text-white mb-4">
+                {uploadView === 'zone' ? '📤 Upload PDFs' : '📚 Your Files'}
+              </h2>
 
-                {uploadView === 'zone' && (
-                  <FileUploadZone
-                    files={files}
-                    isUploading={isUploading}
-                    onFilesSelected={(newFiles) => {
-                      // Note: In a real implementation, store File objects in state
-                      setError(undefined);
-                    }}
-                    onRemoveFile={removeFile}
-                    onUpload={handleUpload}
-                  />
-                )}
+              {uploadView === 'zone' && (
+                <FileUploadZone
+                  files={files}
+                  isUploading={isUploading}
+                  onFilesSelected={addFiles}
+                  onRemoveFile={removeFile}
+                  onUpload={handleUpload}
+                />
+              )}
 
-                {uploadView === 'history' && files.length > 0 && (
-                  <div className="space-y-2">
-                    {files.filter(f => f.status === 'success').map(f => (
-                      <div key={f.id} className="p-3 bg-white dark:bg-slate-900 rounded-lg flex items-center gap-2">
-                        <svg className="h-4 w-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{f.name}</span>
+              {uploadView === 'history' && files.length > 0 && (
+                <div className="space-y-3 flex-1 overflow-y-auto">
+                  {files.filter(f => f.status === 'success').map(f => (
+                    <div key={f.id} className="p-3 bg-slate-900 rounded-lg flex items-start gap-3 hover:bg-slate-700 transition-colors cursor-pointer">
+                      <svg className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4V5h12v10z" />
+                      </svg>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{f.name}</p>
+                        <p className="text-xs text-gray-400 mt-1">{f.size ? `${(f.size / 1024 / 1024).toFixed(2)} MB` : 'Unknown size'}</p>
                       </div>
-                    ))}
-                    <button
-                      onClick={() => { setShowUpload(true); setUploadView('zone'); }}
-                      className="w-full mt-4 px-3 py-2 text-sm text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded-lg transition-colors"
-                    >
-                      + Add more PDFs
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Chat Input (Mobile friendly) */}
-          {!showUpload && (
-            <div className="border-t border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-              <ChatInput
-                value=""
-                onChange={() => {}}
-                onSubmit={() => {}}
-                isLoading={isLoading}
-                disabled={files.length === 0 || connectionError !== undefined}
-              />
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => { setUploadView('zone'); }}
+                    className="w-full mt-4 px-3 py-2 text-sm font-medium text-sky-400 hover:bg-sky-900/20 rounded-lg transition-colors"
+                  >
+                    + Add more PDFs
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 

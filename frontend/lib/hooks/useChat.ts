@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Message } from '@/types/chat';
 import { askQuestion } from '@/lib/api/endpoints';
 import { getErrorMessage } from '@/lib/api/client';
+import { HistoryMessage } from '@/types/api';
 import { v4 as uuidv4 } from 'uuid';
 
 interface UseChatReturn {
@@ -13,6 +14,7 @@ interface UseChatReturn {
   sendMessage: (sessionId: string, question: string) => Promise<void>;
   clearMessages: () => void;
   setError: (error?: string) => void;
+  initMessages: (history: HistoryMessage[]) => void;
 }
 
 export function useChat(): UseChatReturn {
@@ -30,7 +32,13 @@ export function useChat(): UseChatReturn {
       setError(undefined);
       setIsLoading(true);
 
-      // Add user message
+      // Snapshot current messages as history (before adding current question)
+      const history: HistoryMessage[] = messages.map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
+      // Add user message to UI
       const userMessage: Message = {
         id: uuidv4(),
         role: 'user',
@@ -40,10 +48,11 @@ export function useChat(): UseChatReturn {
 
       setMessages((prev) => [...prev, userMessage]);
 
-      // Call API
+      // Call API with history
       const response = await askQuestion({
         session_id: sessionId,
         question: question,
+        history: history,
       });
 
       // Add assistant message
@@ -73,6 +82,16 @@ export function useChat(): UseChatReturn {
     setError(undefined);
   };
 
+  const initMessages = (history: HistoryMessage[]) => {
+    const restoredMessages = history.map(h => ({
+      id: uuidv4(),
+      role: h.role,
+      content: h.content,
+      timestamp: new Date(),
+    }));
+    setMessages(restoredMessages);
+  };
+
   return {
     messages,
     isLoading,
@@ -80,5 +99,6 @@ export function useChat(): UseChatReturn {
     sendMessage,
     clearMessages,
     setError,
+    initMessages,
   };
 }
